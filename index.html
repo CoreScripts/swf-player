@@ -1,86 +1,174 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
 <html>
 <head>
-<title>WAFlash Dynamic Player</title>
-<link rel="stylesheet" href="style.css">
-<meta name="robots" content="noindex">
-<script type="text/javascript">
-		var urlParams = new URLSearchParams(window.location.search);
-		var swfName = 'https://f.noflashgame.com/file/h5games/noflash-wf/wf2/swf/' + urlParams.get("swf");
-		var gameName = urlParams.get('name');
-		if (!swfName) {swfName = "swf/papasscooperia.swf";}
-		var swfURLObj = new URL(swfName, window.location.href);
-		console.log(swfURLObj.toString());
-		var gameConfig = {
-			swfUrl: swfURLObj.toString()		
-		}
-		if (!gameName) {
-			gameName = 'Your game is loading...';
-		}
-		document.title = gameName;
-</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SWF Player</title>
+<style>
+body {
+    background: #333;
+    margin: 0;
+    padding: 20px;
+    font-family: monospace;
+}
+#container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+#upload-area {
+    background: #222;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    cursor: pointer;
+    border: 2px dashed #666;
+}
+#controls {
+    background: #222;
+    padding: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+button {
+    background: #444;
+    color: white;
+    border: 1px solid #666;
+    padding: 8px 16px;
+    margin: 0 5px;
+    cursor: pointer;
+    font-family: monospace;
+}
+button:hover {
+    background: #555;
+}
+#player {
+    background: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 500px;
+}
+#filename {
+    color: #0f0;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 12px;
+}
+canvas {
+    display: block;
+    margin: 0 auto;
+    background: black;
+}
+#footer {
+    text-align: center;
+    margin-top: 20px;
+    padding: 10px;
+    color: #888;
+    font-size: 12px;
+    border-top: 1px solid #444;
+}
+</style>
 </head>
 <body>
-<div id="waflashContainer">
-<canvas class="waflashCanvas" id="canvas" tabindex="1"></canvas>
-<div id="waflashStatus" style="display: none;">Playing...</div>
-<script>
-		var ua = navigator.userAgent.toLowerCase();
-		if ( (navigator.appName == 'Netscape' && ua.indexOf('trident') != -1) || (ua.indexOf("msie") != -1)) {
-    		var waf = document.getElementById('waflashStatus');
-			waf.style.display = 'block';
-			waf.innerText = '인터넷 익스플로어(IE) 에서는 게임이 실행되지 않습니다 !\n크롬, 엣지등의 다른 브라우저를 이용해주세요.';
-		}
-	</script>
-<script type="module" crossorigin="anonymous">
-		let is_mobile = /Mobi/i.test(window.navigator.userAgent);
-		if (is_mobile) {
-			function scrollToSubject() {
-				try {
-					window.scrollTo({
-						top: 100,
-						left: 0,
-						behavior: 'smooth'
-					});
-				} catch (e) {}
-			}
-			scrollToSubject();
-			window.addEventListener("orientationchange", function() {
-				setTimeout(scrollToSubject, 100);
-			});
-		} else {
-			document.getElementById('canvas').focus();
-		}
-		document.getElementById('canvas').addEventListener("keydown", function(ev) {
-			ev.preventDefault();
-			ev.stopPropagation();
-		});
-		document.getElementById('canvas').addEventListener("click", function() {
-			document.getElementById('canvas').focus();
-		});
-		document.addEventListener("mousedown", (function() {
-			const canvasElement = document.getElementById('canvas');
-			let focused = false;
-			return function(ev) {
-				if (ev.target == canvasElement) {
-					if (!focused) {
-						canvasElement.focus();
-						focused = true;
-					}
-				} else {
-					if (focused) {
-						focused = false;
-					}
-				}
-				return true;
-			}
-		})());
-		import {
-			createWaflash
-		} from './waflash/v2/waflash-player.min.js';
-		createWaflash(gameConfig.swfUrl, window.wafOptions || {});
-	</script>
+<div id="container">
+<div id="upload-area">
+Click here to upload SWF file
 </div>
-<script>(function(){var js = "window['__CF$cv$params']={r:'765024dea8f70436',m:'2.V.Io4z3CuCa8S4JkOyASOgJBzHgFJVtUHhehXEE3k-1667594209-0-Ad0XdZU3ejOKRiMM13cAdWj8kM+3iRzYVaqAWp4cZpry952nNfe8ReVnO6GjteBsK8aLvDj/KZnHex1SlPdtpsB2iwuYdu4rae0bwFxbpYdHvrcsZyQcHdnJhWmwUObObVgIwmsYKTZxE3XAUG8RdAMnwDWHYnS1VwUm59uYmpzhWAa7DyrJSCPAKyiKyCum6T5gt6nl1g7bSxehPVWC2hM=',s:[0xad6a86000f,0x20c52a4ded],u:'/cdn-cgi/challenge-platform/h/g'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/g/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+<input type="file" id="file-input" accept=".swf" style="display:none">
+<div id="filename"></div>
+<div id="controls">
+<button id="play-btn">PLAY</button>
+<button id="stop-btn">STOP</button>
+<button id="full-btn">FULLSCREEN</button>
+</div>
+<div id="player">
+<div id="waflashContainer">
+<div style="color:#888; text-align:center;">No SWF loaded<br>Click above to upload</div>
+</div>
+</div>
+<div id="footer">-Made by CoreScripts-</div>
+</div>
+
+<script>
+window.wafOptions = { baseUrl: './waflash/' };
+var gameConfig = { swfUrl: "" };
+var currentSwfUrl = null;
+
+var uploadDiv = document.getElementById('upload-area');
+var fileInput = document.getElementById('file-input');
+var filenameDiv = document.getElementById('filename');
+var playBtn = document.getElementById('play-btn');
+var stopBtn = document.getElementById('stop-btn');
+var fullBtn = document.getElementById('full-btn');
+var waflashContainer = document.getElementById('waflashContainer');
+
+uploadDiv.onclick = function() {
+    fileInput.click();
+};
+
+fileInput.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file || !file.name.endsWith('.swf')) {
+        filenameDiv.innerHTML = 'Invalid .swf file';
+        return;
+    }
+    filenameDiv.innerHTML = 'Loaded: ' + file.name;
+    if (currentSwfUrl) URL.revokeObjectURL(currentSwfUrl);
+    currentSwfUrl = URL.createObjectURL(file);
+};
+
+function createCanvas() {
+    while (waflashContainer.firstChild) {
+        waflashContainer.removeChild(waflashContainer.firstChild);
+    }
+    var canvas = document.createElement('canvas');
+    canvas.id = 'canvas';
+    canvas.setAttribute('tabindex', '1');
+    canvas.width = 800;
+    canvas.height = 600;
+    canvas.style.background = 'black';
+    waflashContainer.appendChild(canvas);
+    return canvas;
+}
+
+playBtn.onclick = function() {
+    if (!currentSwfUrl) {
+        filenameDiv.innerHTML = 'Please select an SWF file first';
+        return;
+    }
+    createCanvas();
+    gameConfig.swfUrl = currentSwfUrl;
+    if (typeof createWaflash === 'function') {
+        createWaflash(gameConfig.swfUrl, window.wafOptions);
+    } else {
+        filenameDiv.innerHTML = 'WAFlash not loaded. Check waflash folder.';
+    }
+};
+
+stopBtn.onclick = function() {
+    while (waflashContainer.firstChild) {
+        waflashContainer.removeChild(waflashContainer.firstChild);
+    }
+    var div = document.createElement('div');
+    div.style.color = '#888';
+    div.style.textAlign = 'center';
+    div.innerHTML = 'Stopped<br>Click PLAY to restart';
+    waflashContainer.appendChild(div);
+};
+
+fullBtn.onclick = function() {
+    var playerDiv = document.getElementById('player');
+    if (playerDiv.requestFullscreen) playerDiv.requestFullscreen();
+    else if (playerDiv.webkitRequestFullscreen) playerDiv.webkitRequestFullscreen();
+};
+
+document.addEventListener('click', function() {
+    var c = document.getElementById('canvas');
+    if (c) c.focus();
+});
+</script>
+<script src="waflash/waflash-player.min.js"></script>
+<script src="waflash/waflash.min.js"></script>
+</body>
 </html>
