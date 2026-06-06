@@ -78,7 +78,6 @@ Click here to upload SWF file
 <input type="file" id="file-input" accept=".swf" style="display:none">
 <div id="filename"></div>
 <div id="controls">
-<button id="play-btn">PLAY</button>
 <button id="stop-btn">STOP</button>
 <button id="full-btn">FULLSCREEN</button>
 </div>
@@ -98,10 +97,28 @@ var currentSwfUrl = null;
 var uploadDiv = document.getElementById('upload-area');
 var fileInput = document.getElementById('file-input');
 var filenameDiv = document.getElementById('filename');
-var playBtn = document.getElementById('play-btn');
 var stopBtn = document.getElementById('stop-btn');
 var fullBtn = document.getElementById('full-btn');
 var waflashContainer = document.getElementById('waflashContainer');
+
+function createAndPlay(swfUrl) {
+    while (waflashContainer.firstChild) {
+        waflashContainer.removeChild(waflashContainer.firstChild);
+    }
+    var canvas = document.createElement('canvas');
+    canvas.id = 'canvas';
+    canvas.setAttribute('tabindex', '1');
+    canvas.width = 800;
+    canvas.height = 600;
+    canvas.style.background = 'black';
+    waflashContainer.appendChild(canvas);
+    gameConfig.swfUrl = swfUrl;
+    if (typeof createWaflash === 'function') {
+        createWaflash(gameConfig.swfUrl, window.wafOptions);
+    } else {
+        filenameDiv.innerHTML = 'WAFlash not loaded. Put waflash files in ./waflash/ folder';
+    }
+}
 
 uploadDiv.onclick = function() {
     fileInput.click();
@@ -113,37 +130,10 @@ fileInput.onchange = function(e) {
         filenameDiv.innerHTML = 'Invalid .swf file';
         return;
     }
-    filenameDiv.innerHTML = 'Loaded: ' + file.name;
+    filenameDiv.innerHTML = 'Playing: ' + file.name;
     if (currentSwfUrl) URL.revokeObjectURL(currentSwfUrl);
     currentSwfUrl = URL.createObjectURL(file);
-};
-
-function createCanvas() {
-    while (waflashContainer.firstChild) {
-        waflashContainer.removeChild(waflashContainer.firstChild);
-    }
-    var canvas = document.createElement('canvas');
-    canvas.id = 'canvas';
-    canvas.setAttribute('tabindex', '1');
-    canvas.width = 800;
-    canvas.height = 600;
-    canvas.style.background = 'black';
-    waflashContainer.appendChild(canvas);
-    return canvas;
-}
-
-playBtn.onclick = function() {
-    if (!currentSwfUrl) {
-        filenameDiv.innerHTML = 'Please select an SWF file first';
-        return;
-    }
-    createCanvas();
-    gameConfig.swfUrl = currentSwfUrl;
-    if (typeof createWaflash === 'function') {
-        createWaflash(gameConfig.swfUrl, window.wafOptions);
-    } else {
-        filenameDiv.innerHTML = 'WAFlash not loaded. Check waflash folder.';
-    }
+    createAndPlay(currentSwfUrl);
 };
 
 stopBtn.onclick = function() {
@@ -153,8 +143,9 @@ stopBtn.onclick = function() {
     var div = document.createElement('div');
     div.style.color = '#888';
     div.style.textAlign = 'center';
-    div.innerHTML = 'Stopped<br>Click PLAY to restart';
+    div.innerHTML = 'Stopped<br>Upload a new SWF file';
     waflashContainer.appendChild(div);
+    filenameDiv.innerHTML = '';
 };
 
 fullBtn.onclick = function() {
