@@ -8,7 +8,6 @@
     <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
 
     <style>
-        /* Basic styles for functionality */
         body {
             background: #333;
             margin: 0;
@@ -92,7 +91,6 @@
             font-size: 12px;
             border-top: 1px solid #444;
         }
-        /* Make sure the player frame sizes up cleanly inside the UI */
         ruffle-player {
             width: 100%;
             height: 500px;
@@ -105,7 +103,7 @@
     <div id="upload-area">
         Click here to upload SWF file
     </div>
-    <input type="file" id="file-input" accept=".swf" style="display:none">
+    <input type="file" id="file-input" style="display:none">
     <div id="filename"></div>
     <div id="controls">
         <button id="stop-btn">STOP</button>
@@ -120,27 +118,21 @@
 </div>
 
 <script>
-    // Initialize Ruffle engine connection
     const ruffle = window.RufflePlayer.newest();
     let rufflePlayerInstance = null;
     let currentSwfUrl = null;
 
-    // --- DOM Elements ---
     const uploadDiv = document.getElementById('upload-area');
     const fileInput = document.getElementById('file-input');
     const filenameDiv = document.getElementById('filename');
     const stopBtn = document.getElementById('stop-btn');
     const fullBtn = document.getElementById('full-btn');
     const container = document.getElementById('waflashContainer');
-
-    // --- Core Interaction Handling ---
     
-    // Open selection popup on click
     uploadDiv.onclick = function() {
         fileInput.click();
     };
 
-    // Watch for device local uploads
     fileInput.onchange = function(e) {
         const file = e.target.files[0];
         if (!file || !file.name.toLowerCase().endsWith('.swf')) {
@@ -150,27 +142,19 @@
         
         filenameDiv.innerHTML = 'Playing: ' + file.name;
         
-        // Revoke the old object URL to prevent memory leaks
         if (currentSwfUrl) URL.revokeObjectURL(currentSwfUrl);
-        
-        // Generate temporary object link pointing directly to the uploaded file
         currentSwfUrl = URL.createObjectURL(file);
-        
-        // Clear old player instances
         container.innerHTML = '';
         
-        // Build the player engine node object
         rufflePlayerInstance = ruffle.createPlayer();
         container.appendChild(rufflePlayerInstance);
         
-        // Instantly mount and stream the game file
         rufflePlayerInstance.load({
             url: currentSwfUrl,
             allowScriptAccess: true
         });
     };
 
-    // Stop and purge current game execution loop
     stopBtn.onclick = function() {
         container.innerHTML = '<div style="color:#888; text-align:center;">Stopped<br>Upload a new SWF file</div>';
         filenameDiv.innerHTML = '';
@@ -178,11 +162,10 @@
             URL.revokeObjectURL(currentSwfUrl);
             currentSwfUrl = null;
         }
-        fileInput.value = ''; // Reset input selection track
+        fileInput.value = ''; 
         rufflePlayerInstance = null;
     };
 
-    // Request native hardware Fullscreen view tracking
     fullBtn.onclick = function() {
         const playerDiv = document.getElementById('player');
         if (playerDiv.requestFullscreen) {
