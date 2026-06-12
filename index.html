@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>SWF Player - CoreScripts</title>
+    
+    <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+
     <style>
         /* Basic styles for functionality */
         body {
@@ -65,19 +68,21 @@
             border-radius: 5px;
             overflow: hidden;
         }
+        #waflashContainer {
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
         #filename {
             color: #0f0;
             margin-top: 10px;
             text-align: center;
             font-size: 12px;
             word-break: break-all;
-        }
-        canvas {
-            display: block;
-            margin: 0 auto;
-            background: black;
-            width: 100%;
-            height: auto;
+            margin-bottom: 15px;
         }
         #footer {
             text-align: center;
@@ -87,18 +92,24 @@
             font-size: 12px;
             border-top: 1px solid #444;
         }
+        /* Make sure the player frame sizes up cleanly inside the UI */
+        ruffle-player {
+            width: 100%;
+            height: 500px;
+            display: block;
+        }
     </style>
 </head>
 <body>
 <div id="container">
     <div id="upload-area">
-        📁 Click here to upload SWF file
+        Click here to upload SWF file
     </div>
     <input type="file" id="file-input" accept=".swf" style="display:none">
     <div id="filename"></div>
     <div id="controls">
-        <button id="stop-btn">⏹️ STOP</button>
-        <button id="full-btn">🖥️ FULLSCREEN</button>
+        <button id="stop-btn">STOP</button>
+        <button id="full-btn">FULLSCREEN</button>
     </div>
     <div id="player">
         <div id="waflashContainer">
@@ -109,98 +120,77 @@
 </div>
 
 <script>
-    // --- WAFlash Configuration ---
-    // Point the engine to the folder where you host the .data and .wasm files
-    window.wafOptions = {
-        baseUrl: './waflash/'
-    };
-    var gameConfig = { swfUrl: "" };
-    var currentSwfUrl = null;
+    // Initialize Ruffle engine connection
+    const ruffle = window.RufflePlayer.newest();
+    let rufflePlayerInstance = null;
+    let currentSwfUrl = null;
 
     // --- DOM Elements ---
-    var uploadDiv = document.getElementById('upload-area');
-    var fileInput = document.getElementById('file-input');
-    var filenameDiv = document.getElementById('filename');
-    var stopBtn = document.getElementById('stop-btn');
-    var fullBtn = document.getElementById('full-btn');
-    var waflashContainer = document.getElementById('waflashContainer');
+    const uploadDiv = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file-input');
+    const filenameDiv = document.getElementById('filename');
+    const stopBtn = document.getElementById('stop-btn');
+    const fullBtn = document.getElementById('full-btn');
+    const container = document.getElementById('waflashContainer');
 
-    // --- Helper Functions ---
-    function createAndPlay(swfUrl) {
-        // Clear the container for a new game
-        while (waflashContainer.firstChild) {
-            waflashContainer.removeChild(waflashContainer.firstChild);
-        }
-        // Create a new canvas element for WAFlash to render on
-        var canvas = document.createElement('canvas');
-        canvas.id = 'canvas';
-        canvas.setAttribute('tabindex', '1');
-        canvas.width = 800;
-        canvas.height = 600;
-        canvas.style.background = 'black';
-        canvas.style.width = '100%';
-        canvas.style.height = 'auto';
-        waflashContainer.appendChild(canvas);
-        gameConfig.swfUrl = swfUrl;
-        // Check if the WAFlash function is ready and call it
-        if (typeof createWaflash === 'function') {
-            createWaflash(gameConfig.swfUrl, window.wafOptions);
-        } else {
-            filenameDiv.innerHTML = 'Error: WAFlash engine not loaded. Check the console for details.';
-            console.error("WAFlash engine (createWaflash) is not available.");
-        }
-    }
-
-    // --- Event Listeners ---
+    // --- Core Interaction Handling ---
+    
+    // Open selection popup on click
     uploadDiv.onclick = function() {
         fileInput.click();
     };
 
+    // Watch for device local uploads
     fileInput.onchange = function(e) {
-        var file = e.target.files[0];
+        const file = e.target.files[0];
         if (!file || !file.name.toLowerCase().endsWith('.swf')) {
             filenameDiv.innerHTML = 'Invalid .swf file';
             return;
         }
-        filenameDiv.innerHTML = '🎮 Playing: ' + file.name;
+        
+        filenameDiv.innerHTML = 'Playing: ' + file.name;
+        
+        // Revoke the old object URL to prevent memory leaks
         if (currentSwfUrl) URL.revokeObjectURL(currentSwfUrl);
+        
+        // Generate temporary object link pointing directly to the uploaded file
         currentSwfUrl = URL.createObjectURL(file);
-        createAndPlay(currentSwfUrl);
+        
+        // Clear old player instances
+        container.innerHTML = '';
+        
+        // Build the player engine node object
+        rufflePlayerInstance = ruffle.createPlayer();
+        container.appendChild(rufflePlayerInstance);
+        
+        // Instantly mount and stream the game file
+        rufflePlayerInstance.load({
+            url: currentSwfUrl,
+            allowScriptAccess: true
+        });
     };
 
+    // Stop and purge current game execution loop
     stopBtn.onclick = function() {
-        while (waflashContainer.firstChild) {
-            waflashContainer.removeChild(waflashContainer.firstChild);
-        }
-        var div = document.createElement('div');
-        div.style.color = '#888';
-        div.style.textAlign = 'center';
-        div.innerHTML = '⏹️ Stopped<br>Upload a new SWF file';
-        waflashContainer.appendChild(div);
+        container.innerHTML = '<div style="color:#888; text-align:center;">Stopped<br>Upload a new SWF file</div>';
         filenameDiv.innerHTML = '';
         if (currentSwfUrl) {
             URL.revokeObjectURL(currentSwfUrl);
             currentSwfUrl = null;
         }
+        fileInput.value = ''; // Reset input selection track
+        rufflePlayerInstance = null;
     };
 
+    // Request native hardware Fullscreen view tracking
     fullBtn.onclick = function() {
-        var playerDiv = document.getElementById('player');
-        if (playerDiv.requestFullscreen) playerDiv.requestFullscreen();
-        else if (playerDiv.webkitRequestFullscreen) playerDiv.webkitRequestFullscreen();
+        const playerDiv = document.getElementById('player');
+        if (playerDiv.requestFullscreen) {
+            playerDiv.requestFullscreen();
+        } else if (playerDiv.webkitRequestFullscreen) {
+            playerDiv.webkitRequestFullscreen();
+        }
     };
-
-    // Focus on the canvas to ensure keyboard input works for the game
-    document.addEventListener('click', function() {
-        var c = document.getElementById('canvas');
-        if (c) c.focus();
-    });
-
-    console.log("Page loaded, waiting for WAFlash engine...");
 </script>
-
-<!-- Load the WAFlash engine scripts from your local 'waflash' folder -->
-<script src="waflash/waflash-player.min.js"></script>
-<script src="waflash/waflash.min.js"></script>
 </body>
 </html>
